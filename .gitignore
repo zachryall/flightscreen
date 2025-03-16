@@ -1,0 +1,5 @@
+__pycache__/
+.scannerwork/
+
+.pylintrc
+sonar-project.properties
