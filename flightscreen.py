@@ -3,7 +3,7 @@
 from datetime import datetime
 import time
 from rgbmatrix import graphics
-from components.matrix_control import setUpMatrix
+from components.matrix_control import set_up_matrix
 from components.drawing import draw_horizontal_line, draw_flight_details, draw_aircraft_details, draw_stats, draw_clock
 from components.api import repoll_flight_api, get_local_flights
 import config
@@ -32,7 +32,7 @@ logger.info('The script has started')
 LAST_FLIGHT_POLL_TIMESTAMP = datetime.now()
 FLIGHT_COUNTER = 0
 
-matrix, canvas = setUpMatrix()
+matrix, canvas = set_up_matrix()
 
 # Design Vars
 
@@ -46,30 +46,17 @@ parsed_data = []
 
 
 if not os.path.exists(config.HISTORICAL_DATA):
-    logger.error(f'No ./historical_data.json file')
+    logger.error('No ./historical_data.json file')
     sys.exit()
 
 
 LAST_FLIGHT_POLL_TIMESTAMP, parsed_data = get_local_flights()
-
-# parsed_data = {'airport_origin': 'GVA', 'airport_destination': 'EDI', 'plane_make': 'Airbus', 'plane_model': 'A320'}
-# parsed_data = []
 
 while True:
 
     canvas.Clear()
 
     if len(parsed_data) == 0:
-        # now = datetime.now()
-        # current_time = now.strftime("%H:%M:%S")
-        # graphics.DrawText(
-        #     canvas,
-        #     components.theme.font,
-        #     (config.PIXEL_WIDTH - 48) // 2, #TODO support other font sizes
-        #     11,
-        #     TEXT_COLOR_MAIN,
-        #     current_time
-        # )
         draw_clock(canvas, components.theme.font)
         matrix.SwapOnVSync(canvas)
         time.sleep(1)

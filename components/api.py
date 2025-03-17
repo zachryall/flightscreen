@@ -37,13 +37,13 @@ def get_local_flights():
         airport_destination = ' ? '
 
         try:
-            airport_origins = flight_details['airport']['origin']['code']['iata']
+            airport_origin = flight_details['airport']['origin']['code']['iata']
         except TypeError:
-            logger.debug(f'No origin found')
+            logger.debug('No origin found')
         try:
             airport_destination = flight_details['airport']['destination']['code']['iata']
         except TypeError:
-            logger.debug(f'No destination found')
+            logger.debug('No destination found')
 
         aircraft_data = {
             "airport_origin": airport_origin,
@@ -68,7 +68,7 @@ def get_local_flights():
             data[today_date] = []
 
         if aircraft_data['flight_number'] not in data[today_date]:
-            data[today_date].append(aircraft_data['flight_number']) #TODO if no flight number ... ???
+            data[today_date].append(aircraft_data['flight_number'])
 
         with open(config.HISTORICAL_DATA, "w") as f:
             json.dump(data, f, indent=4)

@@ -1,7 +1,7 @@
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 import config
 
-def setUpMatrix():
+def set_up_matrix():
     # Configuration for the matrix
     options = RGBMatrixOptions()
     options.rows = config.PIXEL_HEIGHT
