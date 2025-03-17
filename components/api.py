@@ -1,11 +1,11 @@
 """Component functions
 """
 from datetime import datetime
-import config
-from FlightRadar24 import FlightRadar24API
 import json
-import os.path
 import logging
+import os.path
+from FlightRadar24 import FlightRadar24API
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +19,13 @@ def repoll_flight_api(parsed_data, last_poll_timestamp):
         elapsed_time = (now_timestamp - last_poll_timestamp).total_seconds()
         if elapsed_time > config.REPOLL_TIME:
             last_poll_timestamp, parsed_data = get_local_flights()
-    return last_poll_timestamp, parsed_data 
+    return last_poll_timestamp, parsed_data
 
 def get_local_flights():
     bounds = fr_api.get_bounds_by_point(config.LAT, config.LONG, config.RADIUS)
     flights_local = fr_api.get_flights(bounds = bounds)
 
-    logger.info(f'Flights found: {len(flights_local)}')
+    logger.info('Flights found: %s' % len(flights_local))
 
     parsed_data = []
     for flight_local in flights_local:
@@ -59,7 +59,7 @@ def get_local_flights():
         today_date = datetime.now().strftime("%Y%m%d")
 
         if os.path.getsize(config.HISTORICAL_DATA) > 0:
-            with open(config.HISTORICAL_DATA, "r") as f:
+            with open(config.HISTORICAL_DATA, "r", encoding="utf-8") as f:
                 data = json.load(f)
         else:
             data = {}
@@ -70,7 +70,7 @@ def get_local_flights():
         if aircraft_data['flight_number'] not in data[today_date]:
             data[today_date].append(aircraft_data['flight_number'])
 
-        with open(config.HISTORICAL_DATA, "w") as f:
+        with open(config.HISTORICAL_DATA, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
     logger.debug(parsed_data)

@@ -1,25 +1,25 @@
-import config
-from rgbmatrix import graphics
 from datetime import datetime
+from rgbmatrix import graphics
+import config
 
 TEXT_COLOR_MAIN = graphics.Color(0, 255, 0)
+divider_colour = graphics.Color(0, 0, 255)
 
 
 def draw_horizontal_line(canvas):
-    DIVIDER_POSITION = (0, config.PIXEL_HEIGHT / 2)
-    DIVIDER_COLOUR = graphics.Color(0, 0, 255)
+    divider_position = (0, config.PIXEL_HEIGHT / 2)
 
-    for i in range(DIVIDER_POSITION[0], DIVIDER_POSITION[0] + config.PIXEL_WIDTH):
-        canvas.SetPixel(i, DIVIDER_POSITION[1], DIVIDER_COLOUR.red, DIVIDER_COLOUR.green, DIVIDER_COLOUR.blue)
+    for i in range(divider_position[0], divider_position[0] + config.PIXEL_WIDTH):
+        canvas.SetPixel(i, divider_position[1], divider_colour.red, divider_colour.green, divider_colour.blue)
 
 def draw_flight_details(canvas, font, font_small, parsed_data, flight_counter):
-    FLIGHT_DETAILS_POSITION = (3, 11)
+    flight_details_position = (3, 11)
 
     graphics.DrawText(
         canvas,
         font,
-        FLIGHT_DETAILS_POSITION[0],
-        FLIGHT_DETAILS_POSITION[1],
+        flight_details_position[0],
+        flight_details_position[1],
         TEXT_COLOR_MAIN,
         f"{parsed_data[flight_counter]['airport_origin']}>{parsed_data[flight_counter]['airport_destination']}"
     )
