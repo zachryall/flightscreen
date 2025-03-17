@@ -9,7 +9,8 @@ def setUpMatrix():
     options.chain_length = 1
     options.parallel = 1
     options.hardware_mapping = config.HARDWARE_MAPPING
-    options.gpio_slowdown = 4
+    options.gpio_slowdown = config.GPIO_SLOWDOWN
+    options.brightness = config.BRIGHTNESS
 
     # Initialize the matrix
     matrix = RGBMatrix(options=options)

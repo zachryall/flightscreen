@@ -3,7 +3,11 @@
 from datetime import datetime
 import config
 from FlightRadar24 import FlightRadar24API
+import json
+import os.path
+import logging
 
+logger = logging.getLogger(__name__)
 
 fr_api = FlightRadar24API()
 
@@ -21,8 +25,10 @@ def get_local_flights():
     bounds = fr_api.get_bounds_by_point(config.LAT, config.LONG, config.RADIUS)
     flights_local = fr_api.get_flights(bounds = bounds)
 
+    logger.info(f'Flights found: {len(flights_local)}')
+
+    parsed_data = []
     for flight_local in flights_local:
-        parsed_data = []
 
         flight_details = fr_api.get_flight_details(flight_local)
 
@@ -33,21 +39,39 @@ def get_local_flights():
         try:
             airport_origins = flight_details['airport']['origin']['code']['iata']
         except TypeError:
-            print('No origin')
+            logger.debug(f'No origin found')
         try:
             airport_destination = flight_details['airport']['destination']['code']['iata']
         except TypeError:
-            print('No destination')
+            logger.debug(f'No destination found')
 
         aircraft_data = {
             "airport_origin": airport_origin,
             "airport_destination": airport_destination,
             "plane_make": flight_details['aircraft']['model']['text'].split(' ')[0],
             "plane_model": flight_details['aircraft']['model']['code'],
+            "flight_number": flight_details['identification']['number']['default'],
         }
 
-    print(aircraft_data)
+        # Add the aircraft data to the list
+        parsed_data.append(aircraft_data)
 
-    # Add the aircraft data to the list
-    parsed_data.append(aircraft_data)
+        today_date = datetime.now().strftime("%Y%m%d")
+
+        if os.path.getsize(config.HISTORICAL_DATA) > 0:
+            with open(config.HISTORICAL_DATA, "r") as f:
+                data = json.load(f)
+        else:
+            data = {}
+
+        if today_date not in data:
+            data[today_date] = []
+
+        if aircraft_data['flight_number'] not in data[today_date]:
+            data[today_date].append(aircraft_data['flight_number']) #TODO if no flight number ... ???
+
+        with open(config.HISTORICAL_DATA, "w") as f:
+            json.dump(data, f, indent=4)
+
+    logger.debug(parsed_data)
     return datetime.now(), parsed_data
