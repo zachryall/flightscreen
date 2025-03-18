@@ -1,8 +1,11 @@
+import configparser
 from rgbmatrix import graphics
-import config
+
+config = configparser.ConfigParser()
+config.read('./config.ini')
 
 font = graphics.Font()
-font.LoadFont(config.FONT_REGULAR)
+font.LoadFont(config.get("Display", "font_regular"))
 
 font_small = graphics.Font()
-font_small.LoadFont(config.FONT_SMALL)
+font_small.LoadFont(config.get("Display", "font_small"))

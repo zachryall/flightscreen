@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import configparser
 from datetime import datetime
 import json
 import logging
@@ -16,16 +17,15 @@ from components.drawing import (
     draw_stats,
 )
 from components.matrix_control import set_up_matrix
+import components.config
 import components.theme
-import config
-
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
 )
 
-if config.DEBUG_MODE:
+if components.config.config_dict['Logging']['debug_mode']:
     logging.basicConfig(
         level=logging.DEBUG
     )
@@ -41,7 +41,6 @@ FLIGHT_COUNTER = 0
 matrix, canvas = set_up_matrix()
 
 # Design Vars
-
 FLIGHT_DETAILS_POSITION = (3, 11)
 
 # Initial offset
@@ -50,8 +49,7 @@ offset = matrix.width
 
 parsed_data = []
 
-
-if not os.path.exists(config.HISTORICAL_DATA):
+if not os.path.exists(components.config.config_dict['Logging']['historical_data']):
     logger.error('No ./historical_data.json file')
     sys.exit()
 
@@ -90,8 +88,8 @@ while True:
             if FLIGHT_COUNTER == 0:
                 today_date = datetime.now().strftime("%Y%m%d")
 
-                if os.path.getsize(config.HISTORICAL_DATA) > 0:
-                    with open(config.HISTORICAL_DATA, "r", encoding="utf-8") as f:
+                if os.path.getsize(components.config.config_dict['Logging']['historical_data']) > 0:
+                    with open(components.config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
                         data = json.load(f)
                     FLIGHT_COUNT = str(len(data[today_date]))
                 else:
@@ -105,7 +103,7 @@ while True:
 
                 LAST_FLIGHT_POLL_TIMESTAMP, parsed_data = repoll_flight_api(parsed_data, LAST_FLIGHT_POLL_TIMESTAMP)
 
-        time.sleep(config.SCROLL_SPEED)  # Adjust scrolling speed
+        time.sleep(components.config.config_dict['Display']['scroll_speed'])
 
 # Display the canvas
 matrix.SwapOnVSync(canvas)

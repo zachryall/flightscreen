@@ -1,21 +1,20 @@
+import configparser
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
-import config
+
+config = configparser.ConfigParser()
+config.read('./config.ini')
 
 def set_up_matrix():
-    # Configuration for the matrix
     options = RGBMatrixOptions()
-    options.rows = config.PIXEL_HEIGHT
-    options.cols = config.PIXEL_WIDTH
+    options.brightness = config.getint("Hardware", "brightness")
     options.chain_length = 1
+    options.cols = config.getint("Hardware", "pixel_width")
+    options.gpio_slowdown = config.getint("Hardware", "gpio_slowdown")
+    options.hardware_mapping = config.get("Hardware", "hardware_mapping")
     options.parallel = 1
-    options.hardware_mapping = config.HARDWARE_MAPPING
-    options.gpio_slowdown = config.GPIO_SLOWDOWN
-    options.brightness = config.BRIGHTNESS
+    options.rows = config.getint("Hardware", "pixel_height")
 
-    # Initialize the matrix
     matrix = RGBMatrix(options=options)
-
-    # Create a canvas
     canvas = matrix.CreateFrameCanvas()
 
     return matrix, canvas
