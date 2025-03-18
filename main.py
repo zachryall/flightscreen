@@ -9,7 +9,6 @@ import time
 from components.api import repoll_flight_api, get_local_flights
 from components.drawing import (
     draw_aircraft_details,
-    draw_clock,
     draw_flight_details,
     draw_horizontal_line,
     draw_stats,
@@ -17,6 +16,7 @@ from components.drawing import (
 from components.matrix_control import set_up_matrix
 from components import config
 import components.theme
+from components.scene import scene_clock, scene_flight_tracker, scene_stats
 
 def main():
     """Main function
@@ -32,11 +32,9 @@ def main():
         )
 
     logger = logging.getLogger(__name__)
-
     logger.info('The script has started')
 
     # Vars
-    last_flight_poll_timestamp = datetime.now()
     flight_counter = 0
 
     matrix, canvas = set_up_matrix()
@@ -59,24 +57,14 @@ def main():
         canvas.Clear()
 
         if len(parsed_data) == 0:
-            draw_clock(canvas, components.theme.font)
-            matrix.SwapOnVSync(canvas)
-            time.sleep(1)
-
-            logger.info('Poll - %s', last_flight_poll_timestamp)
+            scene_clock(matrix, canvas)
             last_flight_poll_timestamp, parsed_data = repoll_flight_api(parsed_data, last_flight_poll_timestamp)
 
 
         else:
             plane_details_text = f"{parsed_data[flight_counter]['plane_make']} {parsed_data[flight_counter]['plane_model']}"
             text_width = components.theme.font.CharacterWidth(ord(plane_details_text[0])) * len(plane_details_text)
-
-            draw_flight_details(canvas, components.theme.font, components.theme.font_small, parsed_data, flight_counter)
-            draw_horizontal_line(canvas)
-            draw_aircraft_details(canvas, components.theme.font, offset, plane_details_text)
-
-            matrix.SwapOnVSync(canvas)
-            offset -= 1  # Scroll to the left
+            offset = scene_flight_tracker(matrix, canvas, parsed_data, flight_counter, offset, plane_details_text)
 
             # Wrap around
             if offset + text_width < 0:
@@ -84,34 +72,10 @@ def main():
                 flight_counter = (flight_counter + 1) % len(parsed_data)
 
                 if flight_counter == 0:
-                    today_date = datetime.now().strftime("%Y%m%d")
-
-                    if os.path.getsize(config.config_dict['Logging']['historical_data']) > 0:
-                        with open(config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
-                            data = json.load(f)
-                        flight_count = str(len(data[today_date]))
-                    else:
-                        flight_count = '0'
-                    logger.info('Flights seen so far today - %s', flight_count)
-
-                    canvas.Clear()
-                    draw_stats(canvas, components.theme.font, flight_count)
-                    matrix.SwapOnVSync(canvas)
-                    time.sleep(10)
-
+                    scene_stats(matrix, canvas, flight_count)
                     last_flight_poll_timestamp, parsed_data = repoll_flight_api(parsed_data, last_flight_poll_timestamp)
 
             time.sleep(config.config_dict['Display']['scroll_speed'])
-
-    # Display the canvas
-    matrix.SwapOnVSync(canvas)
-
-    # Optional delay
-    time.sleep(5)
-
-    # Clear the canvas
-    canvas.Clear()
-    matrix.SwapOnVSync(canvas)
 
 if __name__ == '__main__':
     main()
