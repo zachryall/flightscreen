@@ -5,7 +5,7 @@ import json
 import logging
 import os.path
 from FlightRadar24 import FlightRadar24API
-import components.config
+from components import config
 
 logger = logging.getLogger(__name__)
 
@@ -17,15 +17,15 @@ def repoll_flight_api(parsed_data, last_poll_timestamp):
     else:
         now_timestamp = datetime.now()
         elapsed_time = (now_timestamp - last_poll_timestamp).total_seconds()
-        if elapsed_time > components.config.config_dict['Display']['repoll_time']:
+        if elapsed_time > config.config_dict['Display']['repoll_time']:
             last_poll_timestamp, parsed_data = get_local_flights()
     return last_poll_timestamp, parsed_data
 
 def get_local_flights():
     bounds = fr_api.get_bounds_by_point(
-        float(components.config.config_dict['Location']['lat']), #TODO is there a better way
-        float(components.config.config_dict['Location']['long']),
-        int(components.config.config_dict['Location']['radius'])
+        float(config.config_dict['Location']['lat']), #TODO is there a better way
+        float(config.config_dict['Location']['long']),
+        int(config.config_dict['Location']['radius'])
     )
     flights_local = fr_api.get_flights(bounds = bounds)
 
@@ -62,8 +62,8 @@ def get_local_flights():
 
         today_date = datetime.now().strftime("%Y%m%d")
 
-        if os.path.getsize(components.config.config_dict['Logging']['historical_data']) > 0:
-            with open(components.config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
+        if os.path.getsize(config.config_dict['Logging']['historical_data']) > 0:
+            with open(config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
                 data = json.load(f)
         else:
             data = {}
@@ -74,7 +74,7 @@ def get_local_flights():
         if aircraft_data['flight_number'] not in data[today_date]:
             data[today_date].append(aircraft_data['flight_number'])
 
-        with open(components.config.config_dict['Logging']['historical_data'], "w", encoding="utf-8") as f:
+        with open(config.config_dict['Logging']['historical_data'], "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
     logger.debug(parsed_data)

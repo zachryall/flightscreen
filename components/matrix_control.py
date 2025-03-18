@@ -1,3 +1,8 @@
+    """Sets up the matrix and canvas
+
+    Returns:
+        tuple: matrix, canvas
+    """
 import configparser
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
