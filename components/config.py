@@ -1,5 +1,5 @@
-    """Loads the values in config.ini into config_dict
-    """
+"""Loads the values in config.ini into config_dict
+"""
 import configparser
 
 config = configparser.ConfigParser()

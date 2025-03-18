@@ -12,6 +12,15 @@ logger = logging.getLogger(__name__)
 fr_api = FlightRadar24API()
 
 def repoll_flight_api(parsed_data, last_poll_timestamp):
+    """Polls the api for flight information
+
+    Args:
+        parsed_data (dict): Retrieved data
+        last_poll_timestamp (string): Timestamp of the last poll
+
+    Returns:
+        _type_: _description_
+    """
     if last_poll_timestamp == 0:
         last_poll_timestamp, parsed_data = get_local_flights()
     else:
@@ -22,14 +31,19 @@ def repoll_flight_api(parsed_data, last_poll_timestamp):
     return last_poll_timestamp, parsed_data
 
 def get_local_flights():
+    """Retrives the details of flights in the defined area
+
+    Returns:
+        tuple: timestamp of the request, retrieved data dict
+    """
     bounds = fr_api.get_bounds_by_point(
-        float(config.config_dict['Location']['lat']), #TODO is there a better way
-        float(config.config_dict['Location']['long']),
-        int(config.config_dict['Location']['radius'])
+        config.config_dict['Location']['lat'],
+        config.config_dict['Location']['long'],
+        config.config_dict['Location']['radius']
     )
     flights_local = fr_api.get_flights(bounds = bounds)
 
-    logger.info('Flights found: %s' % len(flights_local))
+    logger.info('Flights found: %s', len(flights_local))
 
     parsed_data = []
     for flight_local in flights_local:

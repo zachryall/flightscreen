@@ -1,10 +1,11 @@
+"""Main file
+"""
 from datetime import datetime
 import json
 import logging
 import os.path
 import sys
 import time
-from rgbmatrix import graphics
 from components.api import repoll_flight_api, get_local_flights
 from components.drawing import (
     draw_aircraft_details,
@@ -18,7 +19,8 @@ from components import config
 import components.theme
 
 def main():
-
+    """Main function
+    """
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -38,9 +40,6 @@ def main():
     flight_counter = 0
 
     matrix, canvas = set_up_matrix()
-
-    # Design Vars
-    flight_details_position = (3, 11)
 
     # Initial offset
     offset = matrix.width
@@ -64,7 +63,7 @@ def main():
             matrix.SwapOnVSync(canvas)
             time.sleep(1)
 
-            logger.info('Poll - %s' % last_flight_poll_timestamp)
+            logger.info('Poll - %s', last_flight_poll_timestamp)
             last_flight_poll_timestamp, parsed_data = repoll_flight_api(parsed_data, last_flight_poll_timestamp)
 
 
@@ -90,13 +89,13 @@ def main():
                     if os.path.getsize(config.config_dict['Logging']['historical_data']) > 0:
                         with open(config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
                             data = json.load(f)
-                        FLIGHT_COUNT = str(len(data[today_date]))
+                        flight_count = str(len(data[today_date]))
                     else:
-                        FLIGHT_COUNT = '0'
-                    logger.info('Flights seen so far today - %s' % FLIGHT_COUNT)
+                        flight_count = '0'
+                    logger.info('Flights seen so far today - %s', flight_count)
 
                     canvas.Clear()
-                    draw_stats(canvas, components.theme.font, FLIGHT_COUNT)
+                    draw_stats(canvas, components.theme.font, flight_count)
                     matrix.SwapOnVSync(canvas)
                     time.sleep(10)
 
