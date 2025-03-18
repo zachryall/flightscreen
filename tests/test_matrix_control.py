@@ -4,7 +4,7 @@ from components import config
 from components.matrix_control import set_up_matrix
 
 def test_set_up_matrix_options():
-    matrix, canvas, options = set_up_matrix()
+    _, _, options = set_up_matrix()
 
     assert options.brightness == config.config_dict['Hardware']['brightness']
     assert options.cols == config.config_dict['Hardware']['pixel_width']
@@ -15,7 +15,7 @@ def test_set_up_matrix_options():
     assert options.parallel == 1
 
 def test_set_up_matrix_creation():
-    matrix, canvas, options = set_up_matrix()
+    matrix, canvas, _ = set_up_matrix()
 
     assert isinstance(matrix, RGBMatrix)
     assert canvas is not None
