@@ -1,18 +1,10 @@
 """Main file
 """
-from datetime import datetime
-import json
 import logging
 import os.path
 import sys
 import time
 from components.api import repoll_flight_api, get_local_flights
-from components.drawing import (
-    draw_aircraft_details,
-    draw_flight_details,
-    draw_horizontal_line,
-    draw_stats,
-)
 from components.matrix_control import set_up_matrix
 from components import config
 import components.theme
@@ -72,7 +64,7 @@ def main():
                 flight_counter = (flight_counter + 1) % len(parsed_data)
 
                 if flight_counter == 0:
-                    scene_stats(matrix, canvas, flight_count)
+                    scene_stats(matrix, canvas)
                     last_flight_poll_timestamp, parsed_data = repoll_flight_api(parsed_data, last_flight_poll_timestamp)
 
             time.sleep(config.config_dict['Display']['scroll_speed'])
