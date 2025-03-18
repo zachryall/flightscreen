@@ -17,7 +17,7 @@ def scene_flight_tracker(matrix, canvas, data, flight_counter, offset, text):
     draw_horizontal_line(canvas)
     draw_aircraft_details(canvas, components.theme.font, offset, text)
     matrix.SwapOnVSync(canvas)
-    return offset -=1
+    return offset - 1
 
 def scene_stats(matrix, canvas):
     today_date = datetime.now().strftime("%Y%m%d")
