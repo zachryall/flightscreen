@@ -1,5 +1,6 @@
 """Main file
 """
+from datetime import datetime
 import logging
 import os.path
 import sys
@@ -48,11 +49,17 @@ def main():
 
         canvas.Clear()
 
-        if len(parsed_data) == 0:
+        night_start = datetime.strptime(config.config_dict['Display']['night_time_start'], "%H:%M").time()
+        night_end = datetime.strptime(config.config_dict['Display']['night_time_end'], "%H:%M").time()
+        current_time = datetime.now().time()
+
+        if night_start <= current_time or current_time <= night_end:
+            print('In night-time mode, trying again in 60secs')
+            logger.debug('In night-time mode, trying again in %s', config.config_dict['Display']['repoll_time'])
+            time.sleep(60)
+        elif len(parsed_data) == 0:
             scene_clock(matrix, canvas)
             last_flight_poll_timestamp, parsed_data = repoll_flight_api(parsed_data, last_flight_poll_timestamp)
-
-
         else:
             plane_details_text = f"{parsed_data[flight_counter]['plane_make']} {parsed_data[flight_counter]['plane_model']}"
             text_width = components.theme.font.CharacterWidth(ord(plane_details_text[0])) * len(plane_details_text)
