@@ -32,9 +32,9 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         sudo apt-get install python3-dev cython3 -y
     - name: build-python
-      run: make build-python
+      run: make -C rpi-rgb-led-matrix build-python
     - name: install-python
-      run: sudo make install-python
+      run: sudo make -C rpi-rgb-led-matrix install-python
     - name: Test with pytest
       run: |
         pytest
