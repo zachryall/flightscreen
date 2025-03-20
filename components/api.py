@@ -5,7 +5,7 @@ import json
 import logging
 import os.path
 from FlightRadar24 import FlightRadar24API
-from components import config
+from components.utils import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def repoll_flight_api(parsed_data, last_poll_timestamp):
     else:
         now_timestamp = datetime.now()
         elapsed_time = (now_timestamp - last_poll_timestamp).total_seconds()
-        if elapsed_time > config.config_dict['Display']['repoll_time']:
+        if elapsed_time > get_config('Display', 'repoll_time'):
             last_poll_timestamp, parsed_data = get_local_flights()
     return last_poll_timestamp, parsed_data
 
@@ -37,9 +37,9 @@ def get_local_flights():
         tuple: timestamp of the request, retrieved data dict
     """
     bounds = fr_api.get_bounds_by_point(
-        config.config_dict['Location']['lat'],
-        config.config_dict['Location']['long'],
-        config.config_dict['Location']['radius']
+        float(get_config('Location', 'lat')),
+        float(get_config('Location', 'long')),
+        get_config('Location', 'radius')
     )
     flights_local = fr_api.get_flights(bounds = bounds)
 
@@ -76,8 +76,8 @@ def get_local_flights():
 
         today_date = datetime.now().strftime("%Y%m%d")
 
-        if os.path.getsize(config.config_dict['Logging']['historical_data']) > 0:
-            with open(config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
+        if os.path.getsize('./historical_data.json') > 0:
+            with open('./historical_data.json', "r", encoding="utf-8") as f:
                 data = json.load(f)
         else:
             data = {}
@@ -88,7 +88,7 @@ def get_local_flights():
         if aircraft_data['flight_number'] not in data[today_date]:
             data[today_date].append(aircraft_data['flight_number'])
 
-        with open(config.config_dict['Logging']['historical_data'], "w", encoding="utf-8") as f:
+        with open('./historical_data.json', "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
     logger.debug(parsed_data)

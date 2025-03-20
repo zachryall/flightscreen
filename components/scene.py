@@ -12,7 +12,7 @@ from components.drawing import (
     draw_horizontal_line,
     draw_stats,
 )
-from components import config
+from components.utils import get_config
 import components.theme
 
 logger = logging.getLogger(__name__)
@@ -52,8 +52,8 @@ def scene_stats(matrix, canvas):
     today_date = datetime.now().strftime("%Y%m%d")
     flight_count = '0'
 
-    if os.path.getsize(config.config_dict['Logging']['historical_data']) > 0:
-        with open(config.config_dict['Logging']['historical_data'], "r", encoding="utf-8") as f:
+    if os.path.getsize('./historical_data.json') > 0:
+        with open('./historical_data.json', "r", encoding="utf-8") as f:
             data = json.load(f)
         flight_count = str(len(data[today_date]))
 
