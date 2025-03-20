@@ -24,9 +24,10 @@ def scene_clock(matrix, canvas):
         matrix (_type_): Matrix to display on
         canvas (_type_): Canvas to display
     """
-    draw_clock(canvas, components.theme.font)
-    matrix.SwapOnVSync(canvas)
-    time.sleep(1)
+    for _ in range(60):
+        draw_clock(canvas, components.theme.font)
+        matrix.SwapOnVSync(canvas)
+        time.sleep(1)
 
 def scene_flight_tracker(matrix, canvas, data, flight_counter, offset, text):
     """Displays the flight tracker scene
