@@ -8,8 +8,8 @@ from FlightRadar24 import FlightRadar24API
 from components.utils import get_config
 
 logger = logging.getLogger(__name__)
-
 fr_api = FlightRadar24API()
+data_file = './historical_data.json'
 
 def repoll_flight_api(parsed_data, last_poll_timestamp):
     """Polls the api for flight information
@@ -76,8 +76,8 @@ def get_local_flights():
 
         today_date = datetime.now().strftime("%Y%m%d")
 
-        if os.path.getsize('./historical_data.json') > 0:
-            with open('./historical_data.json', "r", encoding="utf-8") as f:
+        if os.path.getsize(data_file) > 0:
+            with open(data_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
         else:
             data = {}
@@ -88,7 +88,7 @@ def get_local_flights():
         if aircraft_data['flight_number'] not in data[today_date]:
             data[today_date].append(aircraft_data['flight_number'])
 
-        with open('./historical_data.json', "w", encoding="utf-8") as f:
+        with open(data_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
 
     logger.debug(parsed_data)

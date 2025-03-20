@@ -1,10 +1,19 @@
 """Collection of utilites
 """
 import configparser
+import functools
 import logging
 
-
+@functools.lru_cache(maxsize=128)
 def get_config(section, key):
+
+    if not hasattr(get_config, "cache"):
+        get_config.cache = {}
+
+    cache_key = (section, key)
+
+    if cache_key in get_config.cache:
+        return get_config.cache[cache_key]
 
     config = configparser.ConfigParser()
     config.read('./config.ini')
@@ -34,4 +43,6 @@ def get_config(section, key):
             value = config.get(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError):
             value = config_default.get(section, key)
+
+    get_config.cache[cache_key] = value
     return value
