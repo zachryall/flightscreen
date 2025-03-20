@@ -30,7 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        apt-get install python3-dev cython3 -y
+        sudo apt-get install python3-dev cython3 -y
     - name: build-python
       run: make build-python
     - name: install-python
