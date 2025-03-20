@@ -3,10 +3,7 @@
 from datetime import datetime
 from rgbmatrix import graphics
 from components import config
-
-TEXT_COLOR_MAIN = graphics.Color(0, 255, 0)
-divider_colour = graphics.Color(0, 0, 255)
-
+from components import theme
 
 def draw_horizontal_line(canvas):
     """Draw a horizontal line to the canvas
@@ -23,9 +20,9 @@ def draw_horizontal_line(canvas):
         canvas.SetPixel(
             i,
             divider_position[1],
-            divider_colour.red,
-            divider_colour.green,
-            divider_colour.blue
+            theme.colour_accent.red,
+            theme.colour_accent.green,
+            theme.colour_accent.blue
         )
 
 def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_counter):
@@ -46,7 +43,7 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
         font_details,
         flight_details_position[0],
         flight_details_position[1],
-        TEXT_COLOR_MAIN,
+        theme.colour_main,
         f"{parsed_data[flight_counter]['airport_origin']}>{parsed_data[flight_counter]['airport_destination']}"
     )
     graphics.DrawText(
@@ -54,7 +51,7 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
         font_counter,
         50,
         11,
-        TEXT_COLOR_MAIN,
+        theme.colour_main,
         f'{flight_counter+1}/{len(parsed_data)}'
     )
 
@@ -72,7 +69,7 @@ def draw_aircraft_details(canvas, font, offset, text):
         font,
         offset,
         12 + config.config_dict['Hardware']['pixel_height']/2,
-        TEXT_COLOR_MAIN,
+        theme.colour_main,
         text
     )
 
@@ -90,7 +87,7 @@ def draw_clock(canvas, font):
         font,
         (config.config_dict['Hardware']['pixel_width'] - 48) // 2,
         11,
-        TEXT_COLOR_MAIN,
+        theme.colour_main,
         current_time
     )
 
@@ -113,7 +110,7 @@ def draw_stats(canvas, font, count):
         font,
         (config.config_dict['Hardware']['pixel_width'] - text_width_top) // 2,
         11,
-        TEXT_COLOR_MAIN,
+        theme.colour_main,
         text_top
     )
     graphics.DrawText(
@@ -121,6 +118,6 @@ def draw_stats(canvas, font, count):
         font,
         (config.config_dict['Hardware']['pixel_width'] - text_width_bottom) // 2,
         12 + config.config_dict['Hardware']['pixel_height']/2,
-        TEXT_COLOR_MAIN,
+        theme.colour_main,
         text_bottom
     )
