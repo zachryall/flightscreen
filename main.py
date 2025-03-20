@@ -29,7 +29,7 @@ def main():
     # Vars
     flight_counter = 0
 
-    matrix, canvas = set_up_matrix()
+    matrix, canvas, _ = set_up_matrix()
 
     # Initial offset
     offset = matrix.width

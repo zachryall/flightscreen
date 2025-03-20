@@ -21,4 +21,4 @@ def set_up_matrix():
     matrix = RGBMatrix(options=options)
     canvas = matrix.CreateFrameCanvas()
 
-    return matrix, canvas
+    return matrix, canvas, options
