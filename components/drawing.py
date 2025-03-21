@@ -2,7 +2,7 @@
 """
 from datetime import datetime
 from rgbmatrix import graphics
-from components import config
+from components.utils import get_config
 from components import theme
 
 def draw_horizontal_line(canvas):
@@ -11,11 +11,11 @@ def draw_horizontal_line(canvas):
     Args:
         canvas (_type_): Canvas to draw to
     """
-    divider_position = (0, config.config_dict['Hardware']['pixel_height'] / 2)
+    divider_position = (0, get_config('Hardware', 'pixel_height') / 2)
 
     for i in range(
         divider_position[0],
-        divider_position[0] + config.config_dict['Hardware']['pixel_width']
+        divider_position[0] + get_config('Hardware', 'pixel_width')
     ):
         canvas.SetPixel(
             i,
@@ -68,7 +68,7 @@ def draw_aircraft_details(canvas, font, offset, text):
         canvas,
         font,
         offset,
-        12 + config.config_dict['Hardware']['pixel_height']/2,
+        12 + get_config('Hardware', 'pixel_height')/2,
         theme.colour_main,
         text
     )
@@ -85,7 +85,7 @@ def draw_clock(canvas, font):
     graphics.DrawText(
         canvas,
         font,
-        (config.config_dict['Hardware']['pixel_width'] - 48) // 2,
+        (get_config('Hardware', 'pixel_width') - 48) // 2,
         11,
         theme.colour_main,
         current_time
@@ -108,7 +108,7 @@ def draw_stats(canvas, font, count):
     graphics.DrawText(
         canvas,
         font,
-        (config.config_dict['Hardware']['pixel_width'] - text_width_top) // 2,
+        (get_config('Hardware', 'pixel_width') - text_width_top) // 2,
         11,
         theme.colour_main,
         text_top
@@ -116,8 +116,8 @@ def draw_stats(canvas, font, count):
     graphics.DrawText(
         canvas,
         font,
-        (config.config_dict['Hardware']['pixel_width'] - text_width_bottom) // 2,
-        12 + config.config_dict['Hardware']['pixel_height']/2,
+        (get_config('Hardware', 'pixel_width') - text_width_bottom) // 2,
+        12 + get_config('Hardware', 'pixel_height')/2,
         theme.colour_main,
         text_bottom
     )

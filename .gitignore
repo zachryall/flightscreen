@@ -3,4 +3,5 @@ __pycache__/
 .vscode/
 
 .pylintrc
+historical_data.json
 sonar-project.properties
