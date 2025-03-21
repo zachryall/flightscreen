@@ -1,8 +1,7 @@
 __pycache__/
 .scannerwork/
 .vscode/
-rpi-rgb-led-matrix
+rpi-rgb-led-matrix/
 
 .pylintrc
 historical_data.json
-sonar-project.properties
