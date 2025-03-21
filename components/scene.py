@@ -12,7 +12,6 @@ from components.drawing import (
     draw_horizontal_line,
     draw_stats,
 )
-from components.utils import get_config
 import components.theme
 
 logger = logging.getLogger(__name__)

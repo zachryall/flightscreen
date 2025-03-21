@@ -2,11 +2,18 @@
 """
 import configparser
 import functools
-import logging
 
 @functools.lru_cache(maxsize=128)
 def get_config(section, key):
+    """Gets the config from ini file, gets the default value if one is not available
 
+    Args:
+        section (str): Section that the key is under
+        key (str): Key of the config item
+
+    Returns:
+        _type_: The key's value, or default value if one is not available
+    """
     if not hasattr(get_config, "cache"):
         get_config.cache = {}
 
@@ -22,7 +29,7 @@ def get_config(section, key):
     config_default.read('./defaults.ini')
 
     default = config_default.get(section, key)
-    
+
     if default.isdigit():
         try:
             value = config.getint(section, key)
