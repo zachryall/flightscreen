@@ -9,7 +9,7 @@ from components.api import repoll_flight_api, get_local_flights
 from components.matrix_control import set_up_matrix
 from components.utils import get_config
 import components.theme
-from components.scene import scene_clock, scene_flight_tracker, scene_stats
+from components.scene import scene_boot, scene_clock, scene_flight_tracker, scene_stats
 
 def main():
     """Main function
@@ -42,6 +42,7 @@ def main():
         logger.error('No ./historical_data.json file')
         sys.exit()
 
+    scene_boot(matrix,canvas)
 
     last_flight_poll_timestamp, parsed_data = get_local_flights()
 

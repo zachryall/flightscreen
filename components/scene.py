@@ -7,6 +7,7 @@ import os.path
 import time
 from components.drawing import (
     draw_aircraft_details,
+    draw_boot,  
     draw_clock,
     draw_flight_details,
     draw_horizontal_line,
@@ -25,6 +26,7 @@ def scene_clock(matrix, canvas):
     """
     for _ in range(60):
         draw_clock(canvas, components.theme.font)
+        canvas.Clear()
         matrix.SwapOnVSync(canvas)
         time.sleep(1)
 
@@ -62,3 +64,15 @@ def scene_stats(matrix, canvas):
     draw_stats(canvas, components.theme.font, flight_count)
     matrix.SwapOnVSync(canvas)
     time.sleep(10)
+
+def scene_boot(matrix, canvas):
+    """Displays the boot scene
+
+    Args:
+        matrix (_type_): Matrix to display on
+        canvas (_type_): Canvas to display
+    """
+
+    draw_boot(canvas, components.theme.font_small)
+    matrix.SwapOnVSync(canvas)
+    time.sleep(5)
