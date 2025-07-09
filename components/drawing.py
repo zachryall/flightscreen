@@ -38,6 +38,10 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
         flight_counter (int): The current value of the flight counter
     """
     flight_details_position = (3, 11)
+    flight_counter_position = (50, 11)
+
+    if len(parsed_data) > 9:
+        font_counter = components.theme.font_small
 
     graphics.DrawText(
         canvas,
@@ -50,8 +54,8 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
     graphics.DrawText(
         canvas,
         font_counter,
-        50,
-        11,
+        flight_counter_position[0],
+        flight_counter_position[1],
         theme.colour_main,
         f'{flight_counter+1}/{len(parsed_data)}'
     )
@@ -118,7 +122,7 @@ def draw_stats(canvas, font, count):
         canvas,
         font,
         (get_config('Hardware', 'pixel_width') - text_width_bottom) // 2,
-        12 + get_config('Hardware', 'pixel_height')/2,
+        8 + get_config('Hardware', 'pixel_height')/2,
         theme.colour_main,
         text_bottom
     )
@@ -159,7 +163,7 @@ def draw_boot(canvas, font):
         canvas,
         font,
         (get_config('Hardware', 'pixel_width') - text_width_bottom) // 2,
-        12 + get_config('Hardware', 'pixel_height')/2,
+        8 + get_config('Hardware', 'pixel_height')/2,
         theme.colour_main,
         text_bottom
     )

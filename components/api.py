@@ -10,6 +10,8 @@ from components.utils import get_config
 logger = logging.getLogger(__name__)
 fr_api = FlightRadar24API()
 DATA_FILE = './historical_data.json'
+hide_unknown = get_config('Location', 'hide_flights_with_missing_data')
+allowed_plane_manufacters = get_config('Location', 'allowed_plane_manufacters')
 
 def repoll_flight_api(parsed_data, last_poll_timestamp):
     """Polls the api for flight information
@@ -41,14 +43,20 @@ def get_local_flights():
         float(get_config('Location', 'long')),
         get_config('Location', 'radius')
     )
-    flights_local = fr_api.get_flights(bounds = bounds)
+    try:
+        flights_local = fr_api.get_flights(bounds = bounds)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
 
     logger.info('Flights found: %s', len(flights_local))
 
     parsed_data = []
     for flight_local in flights_local:
 
-        flight_details = fr_api.get_flight_details(flight_local)
+        try:
+            flight_details = fr_api.get_flight_details(flight_local)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
 
         #defaults
         airport_origin = ' ? '
@@ -63,33 +71,52 @@ def get_local_flights():
         except TypeError:
             logger.debug('No destination found')
 
-        aircraft_data = {
-            "airport_origin": airport_origin,
-            "airport_destination": airport_destination,
-            "plane_make": flight_details['aircraft']['model']['text'].split(' ')[0],
-            "plane_model": flight_details['aircraft']['model']['code'],
-            "flight_number": flight_details['identification']['number']['default'],
-        }
+        plane_make = flight_details['aircraft']['model']['text'].split(' ')[0]
 
-        # Add the aircraft data to the list
-        parsed_data.append(aircraft_data)
+        if (hide_unknown 
+            and airport_origin != airport_destination != ' ? '
+            and plane_make.lower() in allowed_plane_manufacters):
 
-        today_date = datetime.now().strftime("%Y%m%d")
+            aircraft_data = {
+                "airport_origin": airport_origin,
+                "airport_destination": airport_destination,
+                "plane_make": plane_make,
+                "plane_model": flight_details['aircraft']['model']['code'],
+                "flight_number": flight_details['identification']['number']['default'],
+                "airline": flight_details['airline']['name']
+            }
 
-        if os.path.getsize(DATA_FILE) > 0:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            # Add the aircraft data to the list
+            parsed_data.append(aircraft_data)
+
+            today_date = datetime.now().strftime("%Y%m%d")
+
+            if os.path.getsize(DATA_FILE) > 0:
+                try:
+                    with open(DATA_FILE, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                except json.JSONDecodeError:
+                    logger.error('historial_data.json contains invalid JSON')
+            else:
+                logger.debug('historial_data.json is empty')
+                data = {}
+
+            if today_date not in data:
+                data[today_date] = {}
+
+
+            data[today_date][aircraft_data['flight_number']] = {
+                "airport_origin": airport_origin,
+                "airport_destination": airport_destination,
+                "plane_make": plane_make,
+                "plane_model": flight_details['aircraft']['model']['code'],
+                "airline": flight_details['airline']['name']
+            }
+
+            with open(DATA_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
         else:
-            data = {}
-
-        if today_date not in data:
-            data[today_date] = []
-
-        if aircraft_data['flight_number'] not in data[today_date]:
-            data[today_date].append(aircraft_data['flight_number'])
-
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+            logger.debug('Found a ? flight')
 
     logger.debug(parsed_data)
     return datetime.now(), parsed_data

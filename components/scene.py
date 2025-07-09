@@ -75,4 +75,4 @@ def scene_boot(matrix, canvas):
 
     draw_boot(canvas, components.theme.font_small)
     matrix.SwapOnVSync(canvas)
-    time.sleep(5)
+    time.sleep(3)

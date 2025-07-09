@@ -4,11 +4,13 @@ from rgbmatrix import graphics
 from components.utils import get_config
 
 font = graphics.Font()
-value = get_config('Theme', 'font_regular')
 font.LoadFont(get_config('Theme', 'font_regular'))
 
 font_small = graphics.Font()
 font_small.LoadFont(get_config('Theme', 'font_small'))
+
+font_overflow = graphics.Font()
+font_overflow.LoadFont(get_config('Theme', 'font_overflow'))
 
 main_r = get_config('Theme', 'colour_main_r')
 main_g = get_config('Theme', 'colour_main_g')

@@ -15,7 +15,7 @@ def main():
     """Main function
     """
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARN,
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
 
@@ -42,7 +42,8 @@ def main():
         logger.error('No ./historical_data.json file')
         sys.exit()
 
-    scene_boot(matrix,canvas)
+    if get_config('Display', 'show_ip_on_boot'):
+        scene_boot(matrix,canvas)
 
     last_flight_poll_timestamp, parsed_data = get_local_flights()
 
