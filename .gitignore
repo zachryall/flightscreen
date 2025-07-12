@@ -4,4 +4,4 @@ __pycache__/
 rpi-rgb-led-matrix/
 
 .pylintrc
-historical_data.json
+config.ini
