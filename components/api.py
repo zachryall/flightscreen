@@ -1,7 +1,6 @@
 """Component functions
 """
 from datetime import datetime
-import json
 import logging
 import os.path
 from FlightRadar24 import FlightRadar24API
@@ -9,7 +8,6 @@ from components.utils import get_config
 from components.db import insert_airline, insert_airport, insert_flight, insert_plane_model, insert_plane_registration
 logger = logging.getLogger(__name__)
 fr_api = FlightRadar24API()
-DATA_FILE = './historical_data.json'
 hide_unknown = get_config('Location', 'hide_flights_with_missing_data')
 allowed_plane_manufacters = get_config('Location', 'allowed_plane_manufacters')
 disallowed_airlines = get_config('Location', 'disallowed_airlines')
@@ -91,14 +89,6 @@ def get_local_flights():
             today_date = datetime.now().strftime("%Y%m%d")
 
             aircraft_data = {
-                "airport_origin": airport_origin,
-                "airport_destination": airport_destination,
-                "plane_make": plane_make,
-                "plane_model": flight_details['aircraft']['model']['code'],
-                "flight_number": flight_details['identification']['number']['default'],
-                "airline": airline
-            }
-            aircraft_data_db = {
                 "airport_origin_iata": airport_origin,
                 "airport_origin_name": flight_details['airport']['origin']['name'],
                 "airport_origin_country": flight_details['airport']['origin']['position']['country']['name'],
@@ -113,41 +103,14 @@ def get_local_flights():
                 "date": today_date
             }
 
-            insert_airport(aircraft_data_db)
-            insert_airline(aircraft_data_db)
-            insert_plane_model(aircraft_data_db)
-            insert_plane_registration(aircraft_data_db)
-            insert_flight(aircraft_data_db)
+            insert_airport(aircraft_data)
+            insert_airline(aircraft_data)
+            insert_plane_model(aircraft_data)
+            insert_plane_registration(aircraft_data)
+            insert_flight(aircraft_data)
 
-            # Add the aircraft data to the list
-            parsed_data.append(aircraft_data_db)
+            parsed_data.append(aircraft_data)
 
-            today_date = datetime.now().strftime("%Y%m%d")
-
-            if os.path.getsize(DATA_FILE) > 0:
-                try:
-                    with open(DATA_FILE, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                except json.JSONDecodeError:
-                    logger.error('historial_data.json contains invalid JSON')
-            else:
-                logger.debug('historial_data.json is empty')
-                data = {}
-
-            if today_date not in data:
-                data[today_date] = {}
-
-
-            data[today_date][aircraft_data['flight_number']] = {
-                "airport_origin": airport_origin,
-                "airport_destination": airport_destination,
-                "plane_make": plane_make,
-                "plane_model": flight_details['aircraft']['model']['code'],
-                "airline": flight_details['airline']['name']
-            }
-
-            with open(DATA_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=4)
         else:
             logger.debug('Found a ? flight')
 

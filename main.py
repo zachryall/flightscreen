@@ -40,19 +40,14 @@ def main():
 
     parsed_data = []
 
-    if not os.path.exists('./historical_data.json'):
-        logger.error('No ./historical_data.json file')
-        sys.exit()
-
-    # Update this check to the new database path
-    DB_FILE_PATH_MAIN = '/var/lib/flightscreen/flights.db' # Define it here as well for the check
+    DB_FILE_PATH_MAIN = '/var/lib/flightscreen/flights.db'
     if not os.path.exists(DB_FILE_PATH_MAIN):
         logger.info(f'No .db file found at {DB_FILE_PATH_MAIN}')
         try:
-            create_table() # This will now create it at /var/lib/flightscreen/flights.db
+            create_table()
         except Exception as e:
             logger.error(f"Failed to create database table: {e}")
-            sys.exit(1) # Exit if database creation fails critically
+            sys.exit(1)
 
     if get_config('Display', 'show_ip_on_boot'):
         scene_boot(matrix,canvas)
