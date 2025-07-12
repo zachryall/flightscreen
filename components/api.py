@@ -6,12 +6,13 @@ import logging
 import os.path
 from FlightRadar24 import FlightRadar24API
 from components.utils import get_config
-
+from components.db import insert_airline, insert_airport, insert_flight, insert_plane_model, insert_plane_registration
 logger = logging.getLogger(__name__)
 fr_api = FlightRadar24API()
 DATA_FILE = './historical_data.json'
 hide_unknown = get_config('Location', 'hide_flights_with_missing_data')
 allowed_plane_manufacters = get_config('Location', 'allowed_plane_manufacters')
+disallowed_airlines = get_config('Location', 'disallowed_airlines')
 
 def repoll_flight_api(parsed_data, last_poll_timestamp):
     """Polls the api for flight information
@@ -72,10 +73,22 @@ def get_local_flights():
             logger.debug('No destination found')
 
         plane_make = flight_details['aircraft']['model']['text'].split(' ')[0]
+        
+        
+        airline = None
+
+        try:
+            airline = flight_details['airline']['name']
+        except:
+            logger.debug = ('Flight with no airline found')
 
         if (hide_unknown 
             and airport_origin != airport_destination != ' ? '
-            and plane_make.lower() in allowed_plane_manufacters):
+            and plane_make.lower() in allowed_plane_manufacters
+            and airline.lower() not in disallowed_airlines
+            and airline):
+
+            today_date = datetime.now().strftime("%Y%m%d")
 
             aircraft_data = {
                 "airport_origin": airport_origin,
@@ -83,11 +96,31 @@ def get_local_flights():
                 "plane_make": plane_make,
                 "plane_model": flight_details['aircraft']['model']['code'],
                 "flight_number": flight_details['identification']['number']['default'],
-                "airline": flight_details['airline']['name']
+                "airline": airline
+            }
+            aircraft_data_db = {
+                "airport_origin_iata": airport_origin,
+                "airport_origin_name": flight_details['airport']['origin']['name'],
+                "airport_origin_country": flight_details['airport']['origin']['position']['country']['name'],
+                "airport_destination_iata": airport_destination,
+                "airport_destination_name": flight_details['airport']['destination']['name'],
+                "airport_destination_country": flight_details['airport']['destination']['position']['country']['name'],
+                "plane_make": plane_make,
+                "plane_model": flight_details['aircraft']['model']['code'],
+                "flight_number": flight_details['identification']['number']['default'],
+                "airline": airline,
+                "tail_number": flight_details['aircraft']['registration'],
+                "date": today_date
             }
 
+            insert_airport(aircraft_data_db)
+            insert_airline(aircraft_data_db)
+            insert_plane_model(aircraft_data_db)
+            insert_plane_registration(aircraft_data_db)
+            insert_flight(aircraft_data_db)
+
             # Add the aircraft data to the list
-            parsed_data.append(aircraft_data)
+            parsed_data.append(aircraft_data_db)
 
             today_date = datetime.now().strftime("%Y%m%d")
 

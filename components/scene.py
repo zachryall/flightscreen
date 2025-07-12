@@ -14,6 +14,7 @@ from components.drawing import (
     draw_stats,
 )
 import components.theme
+from components.db import get_daily_flight_count
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +52,7 @@ def scene_stats(matrix, canvas):
         canvas (_type_): Canvas to display
     """
     today_date = datetime.now().strftime("%Y%m%d")
-    flight_count = '0'
-
-    if os.path.getsize('./historical_data.json') > 0:
-        with open('./historical_data.json', "r", encoding="utf-8") as f:
-            data = json.load(f)
-        flight_count = str(len(data[today_date]))
+    flight_count = get_daily_flight_count(today_date)
 
     logger.info('Flights seen so far today - %s', flight_count)
 

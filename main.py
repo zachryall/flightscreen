@@ -5,17 +5,19 @@ import logging
 import os.path
 import sys
 import time
+import sqlite3
 from components.api import repoll_flight_api, get_local_flights
 from components.matrix_control import set_up_matrix
 from components.utils import get_config
 import components.theme
 from components.scene import scene_boot, scene_clock, scene_flight_tracker, scene_stats
+from components.db import create_table
 
 def main():
     """Main function
     """
     logging.basicConfig(
-        level=logging.WARN,
+        level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
 
@@ -41,6 +43,16 @@ def main():
     if not os.path.exists('./historical_data.json'):
         logger.error('No ./historical_data.json file')
         sys.exit()
+
+    # Update this check to the new database path
+    DB_FILE_PATH_MAIN = '/var/lib/flightscreen/flights.db' # Define it here as well for the check
+    if not os.path.exists(DB_FILE_PATH_MAIN):
+        logger.info(f'No .db file found at {DB_FILE_PATH_MAIN}')
+        try:
+            create_table() # This will now create it at /var/lib/flightscreen/flights.db
+        except Exception as e:
+            logger.error(f"Failed to create database table: {e}")
+            sys.exit(1) # Exit if database creation fails critically
 
     if get_config('Display', 'show_ip_on_boot'):
         scene_boot(matrix,canvas)

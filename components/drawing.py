@@ -49,7 +49,7 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
         flight_details_position[0],
         flight_details_position[1],
         theme.colour_main,
-        f"{parsed_data[flight_counter]['airport_origin']}>{parsed_data[flight_counter]['airport_destination']}"
+        f"{parsed_data[flight_counter]['airport_origin_iata']}>{parsed_data[flight_counter]['airport_destination_iata']}"
     )
     graphics.DrawText(
         canvas,
