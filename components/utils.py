@@ -23,7 +23,7 @@ def get_config(section, key):
         return get_config.cache[cache_key]
 
     config = configparser.ConfigParser()
-    config.read('./config.ini')
+    config.read('/var/lib/flightscreen/config.ini')
 
     config_default = configparser.ConfigParser()
     config_default.read('./defaults.ini')

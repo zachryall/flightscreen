@@ -105,6 +105,9 @@ def draw_stats(canvas, font, count):
         count (int): The count of flights seen
     """
 
+    if count > 99:
+        font = theme.font_overflow
+
     text_top = f'{count} flights'
     text_width_top = font.CharacterWidth(ord(text_top[0])) * len(text_top)
     text_bottom = 'seen today'

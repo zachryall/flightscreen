@@ -70,16 +70,17 @@ def get_local_flights():
         except TypeError:
             logger.debug('No destination found')
 
-        plane_make = flight_details['aircraft']['model']['text'].split(' ')[0]
-        
+        try:
+            plane_make = flight_details['aircraft']['model']['text'].split(' ')[0]
+        except TypeError:
+            logger.debug = ('Flight with aircraft info found')
         
         airline = None
-
         try:
             airline = flight_details['airline']['name']
         except TypeError:
             logger.debug = ('Flight with no airline found')
-
+        print('1')
         if (hide_unknown 
             and airport_origin != airport_destination != ' ? '
             and plane_make.lower() in allowed_plane_manufacters
@@ -92,9 +93,13 @@ def get_local_flights():
                 "airport_origin_iata": airport_origin,
                 "airport_origin_name": flight_details['airport']['origin']['name'],
                 "airport_origin_country": flight_details['airport']['origin']['position']['country']['name'],
+                "airport_origin_lat": flight_details['airport']['origin']['position']['latitude'],
+                "airport_origin_long": flight_details['airport']['origin']['position']['longitude'],
                 "airport_destination_iata": airport_destination,
                 "airport_destination_name": flight_details['airport']['destination']['name'],
                 "airport_destination_country": flight_details['airport']['destination']['position']['country']['name'],
+                "airport_destination_lat": flight_details['airport']['destination']['position']['latitude'],
+                "airport_destination_long": flight_details['airport']['destination']['position']['longitude'],
                 "plane_make": plane_make,
                 "plane_model": flight_details['aircraft']['model']['code'],
                 "flight_number": flight_details['identification']['number']['default'],
@@ -108,11 +113,6 @@ def get_local_flights():
             insert_plane_model(aircraft_data)
             insert_plane_registration(aircraft_data)
             insert_flight(aircraft_data)
-
             parsed_data.append(aircraft_data)
 
-        else:
-            logger.debug('Found a ? flight')
-
-    logger.debug(parsed_data)
     return datetime.now(), parsed_data

@@ -17,7 +17,7 @@ def main():
     """Main function
     """
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
 

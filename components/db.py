@@ -52,7 +52,9 @@ def create_table():
             CREATE TABLE airports (
                 iata TEXT PRIMARY KEY,
                 name TEXT,
-                country TEXT
+                country TEXT,
+                latitude REAL,
+                longitude REAL
             );
         """)
         logger.info('Creating flights table')
@@ -94,24 +96,32 @@ def insert_airport(flight_data):
         cursor.execute(SQL_PRAGMA)
         try:
             cursor.execute("""
-                INSERT OR IGNORE INTO airports (iata, name, country) 
-                VALUES (?, ?, ?)
+                INSERT OR IGNORE INTO airports (iata, name, country, latitude, longitude) 
+                VALUES (?, ?, ?, ?, ?)
             """, (
                 flight_data['airport_origin_iata'],
                 flight_data['airport_origin_name'],
                 flight_data['airport_origin_country'],
+                flight_data['airport_origin_lat'],
+                flight_data['airport_origin_long'],
             ))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f'Error inserting new airport (origin): {e}')
+        try:
             cursor.execute("""
-                INSERT OR IGNORE INTO airports (iata, name, country) 
-                VALUES (?, ?, ?)
+                INSERT OR IGNORE INTO airports (iata, name, country, latitude, longitude) 
+                VALUES (?, ?, ?, ?, ?)
             """, (
                 flight_data['airport_destination_iata'],
                 flight_data['airport_destination_name'],
                 flight_data['airport_destination_country'],
+                flight_data['airport_destination_lat'],
+                flight_data['airport_destination_long'],
             ))
             conn.commit()
         except sqlite3.Error as e:
-            logger.error(f'Error inserting new airport: {e}')
+            logger.error(f'Error inserting new airport (destination): {e}')
 
 def insert_airline(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
