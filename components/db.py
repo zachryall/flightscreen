@@ -10,6 +10,8 @@ DB_FILE = os.path.join(DB_DIR, 'flights.db')
 #TODO try catch for all statements
 #TODO sort logging
 
+SQL_PRAGMA = "PRAGMA foreign_keys = ON;"
+
 def create_table():
     conn = None
     try:
@@ -18,7 +20,7 @@ def create_table():
         logger.info(f"Attempting to connect to database at: {DB_FILE}")
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("PRAGMA foreign_keys = ON;")
+        cursor.execute(SQL_PRAGMA)
         logger.info('Creating airline table')
         cursor.execute("""
             CREATE TABLE airlines (
@@ -89,7 +91,7 @@ def create_table():
 def insert_airport(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute("PRAGMA foreign_keys = ON;")
+        cursor.execute(SQL_PRAGMA)
         try:
             cursor.execute("""
                 INSERT OR IGNORE INTO airports (iata, name, country) 
@@ -114,7 +116,7 @@ def insert_airport(flight_data):
 def insert_airline(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute("PRAGMA foreign_keys = ON;")
+        cursor.execute(SQL_PRAGMA)
         try:
             cursor.execute("""
                 INSERT OR IGNORE INTO airlines (name) 
@@ -204,7 +206,7 @@ def get_daily_flight_count(date):
     with sqlite3.connect(DB_FILE) as conn:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        result = cursor.execute("""
+        cursor.execute("""
             SELECT count(*) FROM flights
             WHERE date = ?
         """, (

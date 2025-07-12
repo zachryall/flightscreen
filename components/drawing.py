@@ -141,9 +141,9 @@ def draw_boot(canvas, font):
 
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
+        s.connect(("dns.google", 80))
         text_bottom = s.getsockname()[0]
-    except socket.error as e:
+    except socket.error:
         logger.error('No IP found')
     finally:
         s.close()

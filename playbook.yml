@@ -1,0 +1,143 @@
+---
+- name: Set up FlightScreen
+  hosts: localhost
+  gather_facts: false
+  vars:
+    aws_access_key: AAAA
+    aws_secret_key: BBBB
+    aws_profile: flightscreen_backup
+    wifi_name: Routers of Rohan
+    wifi_password: C6azc*IZzWk5
+    wifi_interface: wlan0
+
+  handlers:
+  - name: Restart NetworkManager
+    service:
+      name: NetworkManager
+      state: restarted
+
+  tasks:
+  - name: Install dependencies
+    become: true
+    ansible.builtin.apt:
+      name:
+      - cython3
+      - git
+      - python3-dev
+      - python3-pip
+      - rpi-connect-lite
+      - sqlite3
+      - unzip
+      update_cache: yes
+
+  # - name: Remove warning
+  #   ansible.builtin.file:
+  #     path: /usr/lib/python3.11/EXTERNALLY-MANAGED
+  #     state: absent
+
+  # - name: Add line to boot file
+  #   ansible.builtin.shell:
+  #     cmd: sed 's/$/ isolcpus=3/' /boot/firmware/cmdline.txt
+
+  # - name: Add line to other boot file
+  #   ansible.builtin.shell:
+  #     cmd: sed 's/$/ isolcpus=3/' /boot/cmdline.txt
+
+  # - name: Add line to other boot file
+  #   ansible.builtin.pip:
+  #     name: FlightRadarAPI
+
+  # - name: Clone FlightScreen Repo
+  #   ansible.builtin.git:
+  #     repo: 'https://github.com/zachryall/flightscreen.git'
+  #     dest: /home/pi/
+  #     version: alpha
+
+  # - name: Clone FlightScreen Repo
+  #   ansible.builtin.git:
+  #     repo: 'https://github.com/hzeller/rpi-rgb-led-matrix.git'
+  #     dest: /home/pi/flightscreen
+  #     version: alpha
+
+  # - name: Make build-python
+  #   community.general.make:
+  #     chdir: /home/pi/flightscreen
+  #     target: build-python
+
+  # - name: Make build-python
+  #   become: true
+  #   community.general.make:
+  #     chdir: /home/pi/flightscreen
+  #     target: install-python
+
+  # - name: Recursively change ownership of a directory
+  #   ansible.builtin.file:
+  #     path: /var/lib/flightscreen
+  #     state: directory
+  #     owner: root
+  #     group: root
+  #     mode: '0775'
+
+  # - name: Enable rpi-connect
+  #   ansible.builtin.shell:
+  #     cmd: rpi-connect on
+
+  # - name: Enable linger
+  #   ansible.builtin.shell:
+  #     cmd: loginctl enable-linger
+
+  # - name: Sign into rpi-connect
+  #   ansible.builtin.shell:
+  #     cmd: rpi-connect signin
+  #   register: rpi-connect-output
+
+  # - name: Display URL link
+  #   ansible.builtin.debug:
+  #     var: rpi-connect-output
+
+  - name: Add user's wifi connection
+    become: true
+    community.general.nmcli:
+      type: wifi
+      conn_name: "{{ wifi_name }}"
+      ifname: "{{ wifi_interface }}"
+      ssid: "{{ wifi_name }}"
+      wifi_sec:
+        key-mgmt: wpa-psk
+        psk: "{{ wifi_password }}"
+      autoconnect: true
+      state: present
+    notify:
+      - Restart NetworkManager  # Handler to restart NetworkManager
+
+  - name: Download the awscli bundle.
+    ansible.builtin.get_url:
+      url: https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
+      dest: /tmp/awscli-bundle.zip
+    register: aws_cli_download_bundle
+
+  - name: Unarchive the installer.
+    ansible.builtin.unarchive:
+      src: /tmp/awscli-bundle.zip
+      dest: /tmp
+      copy: no
+      creates: /tmp/awscli-bundle
+    when: aws_cli_download_bundle.changed
+    register: aws_cli_unarchive_installer
+
+  - name: Install awscli package.
+    ansible.builtin.shell:
+      cmd: ./aws/install
+      chdir: /tmp/awscli-bundle
+    when: aws_cli_unarchive_installer.changed
+
+  # - name: Configure AWS.
+  #   ansible.builtin.shell:
+  #     cmd: aws configure set "{{ aws_access_key }}" "{{ aws_secret_key }}" --profile "{{ aws_profile }}"
+
+
+  # 15. `sudo usermod -aG root pi`
+  # 22. `sudo -E python ./main.py`
+
+  # TODO - add service creation
+  # TODO - add wifi connection

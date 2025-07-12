@@ -77,7 +77,7 @@ def get_local_flights():
 
         try:
             airline = flight_details['airline']['name']
-        except:
+        except TypeError:
             logger.debug = ('Flight with no airline found')
 
         if (hide_unknown 
