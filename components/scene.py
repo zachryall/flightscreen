@@ -7,12 +7,14 @@ import os.path
 import time
 from components.drawing import (
     draw_aircraft_details,
+    draw_boot,  
     draw_clock,
     draw_flight_details,
     draw_horizontal_line,
     draw_stats,
 )
 import components.theme
+from components.db import get_daily_flight_count
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,7 @@ def scene_clock(matrix, canvas):
         canvas (_type_): Canvas to display
     """
     for _ in range(60):
+        canvas.Clear()
         draw_clock(canvas, components.theme.font)
         matrix.SwapOnVSync(canvas)
         time.sleep(1)
@@ -49,12 +52,7 @@ def scene_stats(matrix, canvas):
         canvas (_type_): Canvas to display
     """
     today_date = datetime.now().strftime("%Y%m%d")
-    flight_count = '0'
-
-    if os.path.getsize('./historical_data.json') > 0:
-        with open('./historical_data.json', "r", encoding="utf-8") as f:
-            data = json.load(f)
-        flight_count = str(len(data[today_date]))
+    flight_count = get_daily_flight_count(today_date)
 
     logger.info('Flights seen so far today - %s', flight_count)
 
@@ -62,3 +60,15 @@ def scene_stats(matrix, canvas):
     draw_stats(canvas, components.theme.font, flight_count)
     matrix.SwapOnVSync(canvas)
     time.sleep(10)
+
+def scene_boot(matrix, canvas):
+    """Displays the boot scene
+
+    Args:
+        matrix (_type_): Matrix to display on
+        canvas (_type_): Canvas to display
+    """
+
+    draw_boot(canvas, components.theme.font_small)
+    matrix.SwapOnVSync(canvas)
+    time.sleep(3)

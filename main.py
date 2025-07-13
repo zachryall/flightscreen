@@ -5,17 +5,19 @@ import logging
 import os.path
 import sys
 import time
+import sqlite3
 from components.api import repoll_flight_api, get_local_flights
 from components.matrix_control import set_up_matrix
 from components.utils import get_config
 import components.theme
-from components.scene import scene_clock, scene_flight_tracker, scene_stats
+from components.scene import scene_boot, scene_clock, scene_flight_tracker, scene_stats
+from components.db import create_table
 
 def main():
     """Main function
     """
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARN,
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
 
@@ -38,12 +40,22 @@ def main():
 
     parsed_data = []
 
-    if not os.path.exists('./historical_data.json'):
-        logger.error('No ./historical_data.json file')
-        sys.exit()
+    DB_FILE_PATH_MAIN = '/var/lib/flightscreen/flights.db'
+    if not os.path.exists(DB_FILE_PATH_MAIN):
+        logger.info(f'No .db file found at {DB_FILE_PATH_MAIN}')
+        try:
+            create_table()
+        except Exception as e:
+            logger.error(f"Failed to create database table: {e}")
+            sys.exit(1)
 
+    if get_config('Display', 'show_ip_on_boot'):
+        scene_boot(matrix,canvas)
 
     last_flight_poll_timestamp, parsed_data = get_local_flights()
+
+    logger.debug(parsed_data)
+    logger.debug(f'Data length: {len(parsed_data)}')
 
     while True:
 
@@ -52,7 +64,6 @@ def main():
         current_time = datetime.now().time()
 
         if night_start <= current_time or current_time <= night_end:
-            print('In night-time mode, trying again in 60secs')
             logger.debug('In night-time mode, trying again in %s', get_config('Display', 'repoll_time'))
             time.sleep(60)
         elif len(parsed_data) == 0:

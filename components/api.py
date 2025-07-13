@@ -1,15 +1,16 @@
 """Component functions
 """
 from datetime import datetime
-import json
 import logging
 import os.path
 from FlightRadar24 import FlightRadar24API
 from components.utils import get_config
-
+from components.db import insert_airline, insert_airport, insert_flight, insert_plane_model, insert_plane_registration
 logger = logging.getLogger(__name__)
 fr_api = FlightRadar24API()
-DATA_FILE = './historical_data.json'
+hide_unknown = get_config('Location', 'hide_flights_with_missing_data')
+allowed_plane_manufacters = get_config('Location', 'allowed_plane_manufacters')
+disallowed_airlines = get_config('Location', 'disallowed_airlines')
 
 def repoll_flight_api(parsed_data, last_poll_timestamp):
     """Polls the api for flight information
@@ -41,55 +42,78 @@ def get_local_flights():
         float(get_config('Location', 'long')),
         get_config('Location', 'radius')
     )
-    flights_local = fr_api.get_flights(bounds = bounds)
-
-    logger.info('Flights found: %s', len(flights_local))
+    try:
+        flights_local = fr_api.get_flights(bounds = bounds)
+        logger.info('Flights found: %s', len(flights_local))
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
 
     parsed_data = []
     for flight_local in flights_local:
 
-        flight_details = fr_api.get_flight_details(flight_local)
-
-        #defaults
-        airport_origin = ' ? '
-        airport_destination = ' ? '
+        try:
+            flight_details = fr_api.get_flight_details(flight_local)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
 
         try:
             airport_origin = flight_details['airport']['origin']['code']['iata']
         except TypeError:
             logger.debug('No origin found')
+            airport_origin = ' ? '
         try:
             airport_destination = flight_details['airport']['destination']['code']['iata']
         except TypeError:
             logger.debug('No destination found')
+            airport_destination = ' ? '
 
-        aircraft_data = {
-            "airport_origin": airport_origin,
-            "airport_destination": airport_destination,
-            "plane_make": flight_details['aircraft']['model']['text'].split(' ')[0],
-            "plane_model": flight_details['aircraft']['model']['code'],
-            "flight_number": flight_details['identification']['number']['default'],
-        }
+        try:
+            plane_make = flight_details['aircraft']['model']['text']
+            plane_make = plane_make.split(' ')[0]
+        except (TypeError, KeyError):
+            logger.debug('Flight with aircraft info found')
+            plane_make = 'Unknown'
+        
+        try:
+            airline = flight_details['airline']['name']
+        except TypeError:
+            logger.debug('Flight with no airline found')
+            airline = 'Unknown'
 
-        # Add the aircraft data to the list
-        parsed_data.append(aircraft_data)
+        if (hide_unknown 
+            and airport_origin != airport_destination != ' ? '
+            and plane_make.lower() in allowed_plane_manufacters
+            and airline.lower() not in disallowed_airlines
+            and airline != 'Unknown'):
 
-        today_date = datetime.now().strftime("%Y%m%d")
+            today_date = datetime.now().strftime("%Y%m%d")
 
-        if os.path.getsize(DATA_FILE) > 0:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            aircraft_data = {
+                "airport_origin_iata": airport_origin,
+                "airport_origin_name": flight_details['airport']['origin']['name'],
+                "airport_origin_country": flight_details['airport']['origin']['position']['country']['name'],
+                "airport_origin_lat": flight_details['airport']['origin']['position']['latitude'],
+                "airport_origin_long": flight_details['airport']['origin']['position']['longitude'],
+                "airport_destination_iata": airport_destination,
+                "airport_destination_name": flight_details['airport']['destination']['name'],
+                "airport_destination_country": flight_details['airport']['destination']['position']['country']['name'],
+                "airport_destination_lat": flight_details['airport']['destination']['position']['latitude'],
+                "airport_destination_long": flight_details['airport']['destination']['position']['longitude'],
+                "plane_make": plane_make,
+                "plane_model": flight_details['aircraft']['model']['code'],
+                "flight_number": flight_details['identification']['number']['default'],
+                "airline": airline,
+                "tail_number": flight_details['aircraft']['registration'],
+                "date": today_date
+            }
+
+            insert_airport(aircraft_data)
+            insert_airline(aircraft_data)
+            insert_plane_model(aircraft_data)
+            insert_plane_registration(aircraft_data)
+            insert_flight(aircraft_data)
+            parsed_data.append(aircraft_data)
         else:
-            data = {}
+            logger.debug('Skipping flight...')
 
-        if today_date not in data:
-            data[today_date] = []
-
-        if aircraft_data['flight_number'] not in data[today_date]:
-            data[today_date].append(aircraft_data['flight_number'])
-
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
-
-    logger.debug(parsed_data)
     return datetime.now(), parsed_data

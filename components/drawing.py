@@ -1,6 +1,7 @@
 """Functions relating to drawing to the canvas
 """
 from datetime import datetime
+import socket
 from rgbmatrix import graphics
 from components.utils import get_config
 from components import theme
@@ -37,6 +38,10 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
         flight_counter (int): The current value of the flight counter
     """
     flight_details_position = (3, 11)
+    flight_counter_position = (50, 11)
+
+    if len(parsed_data) > 9:
+        font_counter = components.theme.font_small
 
     graphics.DrawText(
         canvas,
@@ -44,13 +49,13 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
         flight_details_position[0],
         flight_details_position[1],
         theme.colour_main,
-        f"{parsed_data[flight_counter]['airport_origin']}>{parsed_data[flight_counter]['airport_destination']}"
+        f"{parsed_data[flight_counter]['airport_origin_iata']}>{parsed_data[flight_counter]['airport_destination_iata']}"
     )
     graphics.DrawText(
         canvas,
         font_counter,
-        50,
-        11,
+        flight_counter_position[0],
+        flight_counter_position[1],
         theme.colour_main,
         f'{flight_counter+1}/{len(parsed_data)}'
     )
@@ -86,7 +91,7 @@ def draw_clock(canvas, font):
         canvas,
         font,
         (get_config('Hardware', 'pixel_width') - 48) // 2,
-        11,
+        20,
         theme.colour_main,
         current_time
     )
@@ -99,6 +104,9 @@ def draw_stats(canvas, font, count):
         font (str): Font to use
         count (int): The count of flights seen
     """
+
+    if count > 99:
+        font = theme.font_overflow
 
     text_top = f'{count} flights'
     text_width_top = font.CharacterWidth(ord(text_top[0])) * len(text_top)
@@ -117,7 +125,48 @@ def draw_stats(canvas, font, count):
         canvas,
         font,
         (get_config('Hardware', 'pixel_width') - text_width_bottom) // 2,
-        12 + get_config('Hardware', 'pixel_height')/2,
+        8 + get_config('Hardware', 'pixel_height')/2,
+        theme.colour_main,
+        text_bottom
+    )
+
+def draw_boot(canvas, font):
+    """Draws the boot screen to the canvas
+
+    Args:
+        canvas (_type_): Canvas to draw to
+        font (str): Font to use
+        count (int): The count of flights seen
+    """
+
+    text_top = 'Flight Screen'
+    text_bottom = "unknown"
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("dns.google", 80))
+        text_bottom = s.getsockname()[0]
+    except socket.error:
+        logger.error('No IP found')
+    finally:
+        s.close()
+
+    text_width_top = font.CharacterWidth(ord(text_top[0])) * len(text_top)
+    text_width_bottom = font.CharacterWidth(ord(text_bottom[0])) * len(text_bottom)
+
+    graphics.DrawText(
+        canvas,
+        font,
+        (get_config('Hardware', 'pixel_width') - text_width_top) // 2,
+        11,
+        theme.colour_main,
+        text_top
+    )
+    graphics.DrawText(
+        canvas,
+        font,
+        (get_config('Hardware', 'pixel_width') - text_width_bottom) // 2,
+        8 + get_config('Hardware', 'pixel_height')/2,
         theme.colour_main,
         text_bottom
     )
