@@ -44,10 +44,9 @@ def get_local_flights():
     )
     try:
         flights_local = fr_api.get_flights(bounds = bounds)
+        logger.info('Flights found: %s', len(flights_local))
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-
-    logger.info('Flights found: %s', len(flights_local))
 
     parsed_data = []
     for flight_local in flights_local:
@@ -57,35 +56,35 @@ def get_local_flights():
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
 
-        #defaults
-        airport_origin = ' ? '
-        airport_destination = ' ? '
-
         try:
             airport_origin = flight_details['airport']['origin']['code']['iata']
         except TypeError:
             logger.debug('No origin found')
+            airport_origin = ' ? '
         try:
             airport_destination = flight_details['airport']['destination']['code']['iata']
         except TypeError:
             logger.debug('No destination found')
+            airport_destination = ' ? '
 
         try:
-            plane_make = flight_details['aircraft']['model']['text'].split(' ')[0]
-        except TypeError:
-            logger.debug = ('Flight with aircraft info found')
+            plane_make = flight_details['aircraft']['model']['text']
+            plane_make = plane_make.split(' ')[0]
+        except (TypeError, KeyError):
+            logger.debug('Flight with aircraft info found')
+            plane_make = 'Unknown'
         
-        airline = None
         try:
             airline = flight_details['airline']['name']
         except TypeError:
-            logger.debug = ('Flight with no airline found')
-        print('1')
+            logger.debug('Flight with no airline found')
+            airline = 'Unknown'
+
         if (hide_unknown 
             and airport_origin != airport_destination != ' ? '
             and plane_make.lower() in allowed_plane_manufacters
             and airline.lower() not in disallowed_airlines
-            and airline):
+            and airline != 'Unknown'):
 
             today_date = datetime.now().strftime("%Y%m%d")
 
@@ -114,5 +113,7 @@ def get_local_flights():
             insert_plane_registration(aircraft_data)
             insert_flight(aircraft_data)
             parsed_data.append(aircraft_data)
+        else:
+            logger.debug('Skipping flight...')
 
     return datetime.now(), parsed_data

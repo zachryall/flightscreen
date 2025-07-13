@@ -17,7 +17,7 @@ def main():
     """Main function
     """
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.WARN,
         format='%(asctime)s - %(levelname)s - %(message)s',
     )
 
@@ -54,6 +54,9 @@ def main():
 
     last_flight_poll_timestamp, parsed_data = get_local_flights()
 
+    logger.debug(parsed_data)
+    logger.debug(f'Data length: {len(parsed_data)}')
+
     while True:
 
         canvas.Clear()
@@ -61,7 +64,6 @@ def main():
         current_time = datetime.now().time()
 
         if night_start <= current_time or current_time <= night_end:
-            print('In night-time mode, trying again in 60secs')
             logger.debug('In night-time mode, trying again in %s', get_config('Display', 'repoll_time'))
             time.sleep(60)
         elif len(parsed_data) == 0:

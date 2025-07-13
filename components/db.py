@@ -7,9 +7,6 @@ logger = logging.getLogger(__name__)
 DB_DIR = '/var/lib/flightscreen'
 DB_FILE = os.path.join(DB_DIR, 'flights.db')
 
-#TODO try catch for all statements
-#TODO sort logging
-
 SQL_PRAGMA = "PRAGMA foreign_keys = ON;"
 
 def create_table():
@@ -139,77 +136,74 @@ def insert_airline(flight_data):
             logger.error(f'Error inserting new airport: {e}')
 
 def insert_plane_model(flight_data):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT OR IGNORE INTO plane_models (manufacturer, model) 
-        VALUES (?, ?)
-    """, (
-        flight_data['plane_make'],
-        flight_data['plane_model'],
-    ))
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT OR IGNORE INTO plane_models (manufacturer, model) 
+            VALUES (?, ?)
+        """, (
+            flight_data['plane_make'],
+            flight_data['plane_model'],
+        ))
+        conn.commit()
 
 def insert_flight(flight_data):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id FROM airlines
-        WHERE name = ?
-    """, (
-        flight_data['airline'],
-    ))
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id FROM airlines
+            WHERE name = ?
+        """, (
+            flight_data['airline'],
+        ))
 
-    airline_id = cursor.fetchone()
+        airline_id = cursor.fetchone()
 
-    cursor.execute("""
-        INSERT OR IGNORE INTO flights (date, flight_number, tail_number, airline_id, origin, destination) 
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (
-        flight_data['date'],
-        flight_data['flight_number'],
-        flight_data['tail_number'],
-        airline_id[0],
-        flight_data['airport_origin_iata'],
-        flight_data['airport_destination_iata'],
-    ))
-    conn.commit()
-    conn.close()
+        cursor.execute("""
+            INSERT OR IGNORE INTO flights (date, flight_number, tail_number, airline_id, origin, destination) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            flight_data['date'],
+            flight_data['flight_number'],
+            flight_data['tail_number'],
+            airline_id[0],
+            flight_data['airport_origin_iata'],
+            flight_data['airport_destination_iata'],
+        ))
+        conn.commit()
 
 def insert_plane_registration(flight_data):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT id FROM plane_models
-        WHERE manufacturer = ?
-        AND model = ?
-    """, (
-        flight_data['plane_make'],
-        flight_data['plane_model'],
-    ))
+    with sqlite3.connect(DB_FILE) as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id FROM plane_models
+            WHERE manufacturer = ?
+            AND model = ?
+        """, (
+            flight_data['plane_make'],
+            flight_data['plane_model'],
+        ))
 
-    model_id = cursor.fetchone()
+        model_id = cursor.fetchone()
 
-    cursor.execute("""
-        SELECT id FROM airlines
-        WHERE name = ?
-    """, (
-        flight_data['airline'],
-    ))
+        cursor.execute("""
+            SELECT id FROM airlines
+            WHERE name = ?
+        """, (
+            flight_data['airline'],
+        ))
 
-    airline_id = cursor.fetchone()
+        airline_id = cursor.fetchone()
 
-    cursor.execute("""
-        INSERT OR IGNORE INTO plane_registrations (tail_number, model_id, airline_id) 
-        VALUES (?, ?, ?)
-    """, (
-        flight_data['tail_number'],
-        model_id[0],
-        airline_id[0],
-    ))
-    conn.commit()
-    conn.close()
+        cursor.execute("""
+            INSERT OR IGNORE INTO plane_registrations (tail_number, model_id, airline_id) 
+            VALUES (?, ?, ?)
+        """, (
+            flight_data['tail_number'],
+            model_id[0],
+            airline_id[0],
+        ))
+        conn.commit()
 
 def get_daily_flight_count(date):
     result = 0

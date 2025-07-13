@@ -91,7 +91,7 @@ def draw_clock(canvas, font):
         canvas,
         font,
         (get_config('Hardware', 'pixel_width') - 48) // 2,
-        11,
+        20,
         theme.colour_main,
         current_time
     )

@@ -26,8 +26,8 @@ def scene_clock(matrix, canvas):
         canvas (_type_): Canvas to display
     """
     for _ in range(60):
-        draw_clock(canvas, components.theme.font)
         canvas.Clear()
+        draw_clock(canvas, components.theme.font)
         matrix.SwapOnVSync(canvas)
         time.sleep(1)
 
