@@ -41,7 +41,7 @@ def draw_flight_details(canvas, font_details, font_counter, parsed_data, flight_
     flight_counter_position = (50, 11)
 
     if len(parsed_data) > 9:
-        font_counter = components.theme.font_small
+        font_counter = theme.font_small
 
     graphics.DrawText(
         canvas,
