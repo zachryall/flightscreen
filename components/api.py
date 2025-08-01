@@ -2,10 +2,15 @@
 """
 from datetime import datetime
 import logging
-import os.path
 from FlightRadar24 import FlightRadar24API
 from components.utils import get_config
-from components.db import insert_airline, insert_airport, insert_flight, insert_plane_model, insert_plane_registration
+from components.db import (
+    insert_airline,
+    insert_airport,
+    insert_flight,
+    insert_plane_model,
+    insert_plane_registration
+)
 logger = logging.getLogger(__name__)
 fr_api = FlightRadar24API()
 hide_unknown = get_config('Location', 'hide_flights_with_missing_data')
@@ -46,7 +51,7 @@ def get_local_flights():
         flights_local = fr_api.get_flights(bounds = bounds)
         logger.info('Flights found: %s', len(flights_local))
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
+        logger.error("Flights api call error occurred: %s", e)
 
     parsed_data = []
     for flight_local in flights_local:
@@ -54,33 +59,34 @@ def get_local_flights():
         try:
             flight_details = fr_api.get_flight_details(flight_local)
         except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
+            logger.error("Flight Details api call error occurred: %s", e)
+
 
         try:
             airport_origin = flight_details['airport']['origin']['code']['iata']
-        except TypeError:
+        except (AttributeError, TypeError, KeyError):
             logger.debug('No origin found')
             airport_origin = ' ? '
         try:
             airport_destination = flight_details['airport']['destination']['code']['iata']
-        except TypeError:
+        except (AttributeError, TypeError, KeyError):
             logger.debug('No destination found')
             airport_destination = ' ? '
 
         try:
             plane_make = flight_details['aircraft']['model']['text']
             plane_make = plane_make.split(' ')[0]
-        except (TypeError, KeyError):
+        except (AttributeError, TypeError, KeyError):
             logger.debug('Flight with aircraft info found')
             plane_make = 'Unknown'
-        
+
         try:
             airline = flight_details['airline']['name']
-        except TypeError:
+        except (AttributeError, TypeError, KeyError):
             logger.debug('Flight with no airline found')
             airline = 'Unknown'
 
-        if (hide_unknown 
+        if (hide_unknown
             and airport_origin != airport_destination != ' ? '
             and plane_make.lower() in allowed_plane_manufacters
             and airline.lower() not in disallowed_airlines

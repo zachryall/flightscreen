@@ -74,13 +74,12 @@ def create_table():
         conn.commit()
     except sqlite3.Error as e:
         logger.error(f"SQLite error during database/table creation: {e}")
-        # Re-raise the exception to indicate failure to the caller
         raise
     except OSError as e:
         logger.error(f"OS error (e.g., permissions) while creating directory or file: {e}")
         raise
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
+        logger.error("An unexpected error occurred: %s", e)
         raise
     finally:
         if conn:
@@ -90,8 +89,8 @@ def create_table():
 def insert_airport(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute(SQL_PRAGMA)
         try:
+            cursor.execute(SQL_PRAGMA)
             cursor.execute("""
                 INSERT OR IGNORE INTO airports (iata, name, country, latitude, longitude) 
                 VALUES (?, ?, ?, ?, ?)
@@ -104,7 +103,7 @@ def insert_airport(flight_data):
             ))
             conn.commit()
         except sqlite3.Error as e:
-            logger.error(f'Error inserting new airport (origin): {e}')
+            logger.error("Error inserting new airport (origin): %s", e)
         try:
             cursor.execute("""
                 INSERT OR IGNORE INTO airports (iata, name, country, latitude, longitude) 
@@ -118,13 +117,13 @@ def insert_airport(flight_data):
             ))
             conn.commit()
         except sqlite3.Error as e:
-            logger.error(f'Error inserting new airport (destination): {e}')
+            logger.error("Error inserting new airport (destination): %s", e)
 
 def insert_airline(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute(SQL_PRAGMA)
         try:
+            cursor.execute(SQL_PRAGMA)
             cursor.execute("""
                 INSERT OR IGNORE INTO airlines (name) 
                 VALUES (?)
@@ -133,89 +132,101 @@ def insert_airline(flight_data):
             ))
             conn.commit()
         except sqlite3.Error as e:
-            logger.error(f'Error inserting new airport: {e}')
+            logger.error("Error inserting new airline: %s", e)
 
 def insert_plane_model(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT OR IGNORE INTO plane_models (manufacturer, model) 
-            VALUES (?, ?)
-        """, (
-            flight_data['plane_make'],
-            flight_data['plane_model'],
-        ))
-        conn.commit()
+        try:
+            cursor.execute(SQL_PRAGMA)
+            cursor.execute("""
+                INSERT OR IGNORE INTO plane_models (manufacturer, model) 
+                VALUES (?, ?)
+            """, (
+                flight_data['plane_make'],
+                flight_data['plane_model'],
+            ))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error("Error inserting new plane model: %s", e)
 
 def insert_flight(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id FROM airlines
-            WHERE name = ?
-        """, (
-            flight_data['airline'],
-        ))
+        try:
+            cursor.execute(SQL_PRAGMA)
+            cursor.execute("""
+                SELECT id FROM airlines
+                WHERE name = ?
+            """, (
+                flight_data['airline'],
+            ))
+            airline_id = cursor.fetchone()
 
-        airline_id = cursor.fetchone()
-
-        cursor.execute("""
-            INSERT OR IGNORE INTO flights (date, flight_number, tail_number, airline_id, origin, destination) 
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            flight_data['date'],
-            flight_data['flight_number'],
-            flight_data['tail_number'],
-            airline_id[0],
-            flight_data['airport_origin_iata'],
-            flight_data['airport_destination_iata'],
-        ))
-        conn.commit()
+            cursor.execute("""
+                INSERT OR IGNORE INTO flights (date, flight_number, tail_number, airline_id, origin, destination) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                flight_data['date'],
+                flight_data['flight_number'],
+                flight_data['tail_number'],
+                airline_id[0],
+                flight_data['airport_origin_iata'],
+                flight_data['airport_destination_iata'],
+            ))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error("Error inserting new flight: %s", e)
 
 def insert_plane_registration(flight_data):
     with sqlite3.connect(DB_FILE) as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            SELECT id FROM plane_models
-            WHERE manufacturer = ?
-            AND model = ?
-        """, (
-            flight_data['plane_make'],
-            flight_data['plane_model'],
-        ))
+        try:
+            cursor.execute(SQL_PRAGMA)
+            cursor.execute("""
+                SELECT id FROM plane_models
+                WHERE manufacturer = ?
+                AND model = ?
+            """, (
+                flight_data['plane_make'],
+                flight_data['plane_model'],
+            ))
+            model_id = cursor.fetchone()
 
-        model_id = cursor.fetchone()
+            cursor.execute("""
+                SELECT id FROM airlines
+                WHERE name = ?
+            """, (
+                flight_data['airline'],
+            ))
+            airline_id = cursor.fetchone()
 
-        cursor.execute("""
-            SELECT id FROM airlines
-            WHERE name = ?
-        """, (
-            flight_data['airline'],
-        ))
-
-        airline_id = cursor.fetchone()
-
-        cursor.execute("""
-            INSERT OR IGNORE INTO plane_registrations (tail_number, model_id, airline_id) 
-            VALUES (?, ?, ?)
-        """, (
-            flight_data['tail_number'],
-            model_id[0],
-            airline_id[0],
-        ))
-        conn.commit()
+            cursor.execute("""
+                INSERT OR IGNORE INTO plane_registrations (tail_number, model_id, airline_id) 
+                VALUES (?, ?, ?)
+            """, (
+                flight_data['tail_number'],
+                model_id[0],
+                airline_id[0],
+            ))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error("Error inserting new flight: %s", e)
 
 def get_daily_flight_count(date):
     result = 0
     with sqlite3.connect(DB_FILE) as conn:
         conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT count(*) FROM flights
-            WHERE date = ?
-        """, (
-            date,
-        ))
-        result = cursor.fetchone()[0]
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT count(*) FROM flights
+                WHERE date = ?
+            """, (
+                date,
+            ))
+            result = cursor.fetchone()[0]
+        except sqlite3.Error as e:
+            logger.error("Error inserting getting flight count: %s", e)
     return result
 

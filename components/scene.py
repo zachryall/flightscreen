@@ -1,9 +1,7 @@
 """Draws the complete scenes to the matrix
 """
 from datetime import datetime
-import json
 import logging
-import os.path
 import time
 from components.drawing import (
     draw_aircraft_details,
