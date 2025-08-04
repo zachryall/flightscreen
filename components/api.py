@@ -64,14 +64,18 @@ def get_local_flights():
 
         try:
             airport_origin = flight_details['airport']['origin']['code']['iata']
+            airport__origin_name = flight_details['airport']['origin']['name']
         except (AttributeError, TypeError, KeyError):
             logger.debug('No origin found')
             airport_origin = ' ? '
+            airport_origin_name = ' ? '
         try:
             airport_destination = flight_details['airport']['destination']['code']['iata']
+            airport_destination_name = flight_details['airport']['destination']['name']
         except (AttributeError, TypeError, KeyError):
             logger.debug('No destination found')
             airport_destination = ' ? '
+            airport_destination_name = ' ? '
 
         try:
             plane_make = flight_details['aircraft']['model']['text']
@@ -87,7 +91,8 @@ def get_local_flights():
             airline = 'Unknown'
 
         if (hide_unknown
-            and airport_origin != airport_destination != ' ? '
+            and airport_destination != ' ? '
+            and airport_destination != ' ? '
             and plane_make.lower() in allowed_plane_manufacters
             and airline.lower() not in disallowed_airlines
             and airline != 'Unknown'):
@@ -96,12 +101,12 @@ def get_local_flights():
 
             aircraft_data = {
                 "airport_origin_iata": airport_origin,
-                "airport_origin_name": flight_details['airport']['origin']['name'],
+                "airport_origin_name": airport_origin_name
                 "airport_origin_country": flight_details['airport']['origin']['position']['country']['name'],
                 "airport_origin_lat": flight_details['airport']['origin']['position']['latitude'],
                 "airport_origin_long": flight_details['airport']['origin']['position']['longitude'],
                 "airport_destination_iata": airport_destination,
-                "airport_destination_name": flight_details['airport']['destination']['name'],
+                "airport_destination_name": airport_destination_name,
                 "airport_destination_country": flight_details['airport']['destination']['position']['country']['name'],
                 "airport_destination_lat": flight_details['airport']['destination']['position']['latitude'],
                 "airport_destination_long": flight_details['airport']['destination']['position']['longitude'],

@@ -40,7 +40,7 @@ def create_table():
                 tail_number TEXT PRIMARY KEY,
                 model_id INTEGER,
                 airline_id INTEGER,
-                FOREIGN KEY (model_id) REFERENCES plane_model(id),
+                FOREIGN KEY (model_id) REFERENCES plane_models(id),
                 FOREIGN KEY (airline_id) REFERENCES airlines(id)
             );
         """)
@@ -65,7 +65,7 @@ def create_table():
                 origin TEXT, 
                 destination TEXT,
                 UNIQUE (date, tail_number, origin, destination),
-                FOREIGN KEY (tail_number) REFERENCES plane_registration(tail_number),
+                FOREIGN KEY (tail_number) REFERENCES plane_registrations(tail_number),
                 FOREIGN KEY (airline_id) REFERENCES airlines(id),
                 FOREIGN KEY (origin) REFERENCES airports(iata),
                 FOREIGN KEY (destination) REFERENCES airports(iata)
@@ -211,7 +211,7 @@ def insert_plane_registration(flight_data):
             ))
             conn.commit()
         except sqlite3.Error as e:
-            logger.error("Error inserting new flight: %s", e)
+            logger.error("Error inserting new plane registration: %s", e)
 
 def get_daily_flight_count(date):
     result = 0
